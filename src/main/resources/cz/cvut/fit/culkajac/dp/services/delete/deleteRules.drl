@@ -1,0 +1,59 @@
+package cz.cvut.fit.culkajac.dp.services.delete
+
+global org.switchyard.Exchange exchange;
+
+import cz.cvut.fit.culkajac.dp.dto.FileDescriptorDTO;
+import cz.cvut.fit.culkajac.dp.Constants;
+
+import java.util.Set;
+import org.switchyard.Property;
+import org.switchyard.Scope;
+
+
+rule "Add Google Docs route - DELETE"
+	
+	when
+        #conditions
+        $msg : FileDescriptorDTO(extension in ("txt", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "pdf"), targetService == "") || FileDescriptorDTO(targetService == Constants.GoogleDocs.ROUTE_ID)
+         
+    then
+        #actions
+
+    	((Set)exchange.getContext().getProperty("destinationRoutes", Scope.IN).getValue()).add(Constants.GoogleDocs.ROUTE_ID);
+end
+
+rule "Add Google Photos route - DELETE"
+
+    when
+        #conditions
+        $msg : FileDescriptorDTO(extension in ("jpeg", "jpg", "tif", "tiff", "bmp", "gif", "png", "tga", "avi", "wmv", "mpg"), targetService == "") || FileDescriptorDTO(targetService == Constants.Picasa.ROUTE_ID)
+    then
+    	#actions
+    	((Set)exchange.getContext().getProperty("destinationRoutes", Scope.IN).getValue()).add(Constants.Picasa.ROUTE_ID);
+end
+
+rule "Add S3 route - DELETE"
+
+
+    when
+        #conditions
+        $msg : FileDescriptorDTO(targetService == "") || FileDescriptorDTO(targetService == Constants.AmazonS3.ROUTE_ID)
+    then
+    	#actions
+    	((Set)exchange.getContext().getProperty("destinationRoutes", Scope.IN).getValue()).add(Constants.AmazonS3.ROUTE_ID);
+end
+
+rule "Add Dropbox route - DELETE"
+
+    when
+        #conditions
+        $msg : FileDescriptorDTO(extension in ("dropbox"), targetService == "") || FileDescriptorDTO(targetService == Constants.Dropbox.ROUTE_ID)
+    then
+    	#actions
+    	((Set)exchange.getContext().getProperty("destinationRoutes", Scope.IN).getValue()).add(Constants.Dropbox.ROUTE_ID);
+end
+
+
+
+
+

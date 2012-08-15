@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<definitions id="Definition"
+             targetNamespace="http://www.jboss.org/drools"
+             typeLanguage="http://www.java.com/javaTypes"
+             expressionLanguage="http://www.mvel.org/2.0"
+             xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd"
+             xmlns:g="http://www.jboss.org/drools/flow/gpd"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             xmlns:tns="http://www.jboss.org/drools">
+
+  <itemDefinition id="_messageContentInItem" />
+  <itemDefinition id="_messageContentOutItem" structureRef="java.util.Collection" />
+  <itemDefinition id="_processIdItem" />
+  <itemDefinition id="_destinationRoutesItem" structureRef="java.util.Set" />
+  <itemDefinition id="_messageContentOutTempItem" />
+
+  <process processType="Private" isExecutable="true" id="RetrieveFileProcess" name="RetrieveFileProcess" tns:packageName="cz.cvut.fit.culkajac.dp.services.retrieve" >
+
+    <extensionElements>
+     <tns:import name="com.google.common.collect.Sets" />
+     <tns:import name="cz.cvut.fit.culkajac.dp.Constants" />
+     <tns:import name="java.util.Set" />
+     <tns:global identifier="exchange" type="org.switchyard.Exchange" />
+    </extensionElements>
+    <!-- process variables -->
+    <property id="messageContentIn" itemSubjectRef="_messageContentInItem"/>
+    <property id="messageContentOut" itemSubjectRef="_messageContentOutItem"/>
+    <property id="processId" itemSubjectRef="_processIdItem"/>
+    <property id="destinationRoutes" itemSubjectRef="_destinationRoutesItem"/>
+    <property id="messageContentOutTemp" itemSubjectRef="_messageContentOutTempItem"/>
+
+    <!-- nodes -->
+    <startEvent id="_1" name="StartProcess" />
+    <inclusiveGateway id="_3" name="Splitter" gatewayDirection="Diverging" />
+    <task id="_5" name="Google Photos Adapter [Retrieve]" tns:taskName="SwitchYard Service" >
+      <ioSpecification>
+        <dataInput id="_5_messageContentInInput" name="messageContentIn" />
+        <dataInput id="_5_ServiceNameInput" name="ServiceName" />
+        <dataInput id="_5_ServiceOperationNameInput" name="ServiceOperationName" />
+        <dataOutput id="_5_messageContentOutOutput" name="messageContentOut" />
+        <inputSet>
+          <dataInputRefs>_5_messageContentInInput</dataInputRefs>
+          <dataInputRefs>_5_ServiceNameInput</dataInputRefs>
+          <dataInputRefs>_5_ServiceOperationNameInput</dataInputRefs>
+        </inputSet>
+        <outputSet>
+          <dataOutputRefs>_5_messageContentOutOutput</dataOutputRefs>
+        </outputSet>
+      </ioSpecification>
+      <dataInputAssociation>
+        <sourceRef>messageContentIn</sourceRef>
+        <targetRef>_5_messageContentInInput</targetRef>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_5_ServiceNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">GooglePhotosServiceAdapter</from>
+          <to xsi:type="tFormalExpression">_5_ServiceNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_5_ServiceOperationNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">retrieveLatestSafe</from>
+          <to xsi:type="tFormalExpression">_5_ServiceOperationNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+      <dataOutputAssociation>
+        <sourceRef>_5_messageContentOutOutput</sourceRef>
+        <targetRef>messageContentOutTemp</targetRef>
+      </dataOutputAssociation>
+    </task>
+    <task id="_6" name="Google Docs Adapter [Retrieve]" tns:taskName="SwitchYard Service" >
+      <ioSpecification>
+        <dataInput id="_6_messageContentInInput" name="messageContentIn" />
+        <dataInput id="_6_ServiceNameInput" name="ServiceName" />
+        <dataInput id="_6_ServiceOperationNameInput" name="ServiceOperationName" />
+        <dataOutput id="_6_messageContentOutOutput" name="messageContentOut" />
+        <inputSet>
+          <dataInputRefs>_6_messageContentInInput</dataInputRefs>
+          <dataInputRefs>_6_ServiceNameInput</dataInputRefs>
+          <dataInputRefs>_6_ServiceOperationNameInput</dataInputRefs>
+        </inputSet>
+        <outputSet>
+          <dataOutputRefs>_6_messageContentOutOutput</dataOutputRefs>
+        </outputSet>
+      </ioSpecification>
+      <dataInputAssociation>
+        <sourceRef>messageContentIn</sourceRef>
+        <targetRef>_6_messageContentInInput</targetRef>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_6_ServiceNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">GoogleDocsServiceAdapter</from>
+          <to xsi:type="tFormalExpression">_6_ServiceNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_6_ServiceOperationNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">retrieveLatestSafe</from>
+          <to xsi:type="tFormalExpression">_6_ServiceOperationNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+      <dataOutputAssociation>
+        <sourceRef>_6_messageContentOutOutput</sourceRef>
+        <targetRef>messageContentOutTemp</targetRef>
+      </dataOutputAssociation>
+    </task>
+    <task id="_9" name="Retrieve Selection Rules" tns:taskName="SwitchYard Service" >
+      <extensionElements>
+        <tns:onEntry-script>
+          <script>Set destinationRoutes = Sets.newHashSet();
+kcontext.setVariable("destinationRoutes", destinationRoutes);</script>
+        </tns:onEntry-script>
+        <tns:onEntry-script>
+          <script>Set messageContentOut = Sets.newHashSet();
+kcontext.setVariable("messageContentOut", messageContentOut);</script>
+        </tns:onEntry-script>
+      </extensionElements>
+      <ioSpecification>
+        <dataInput id="_9_messageContentInInput" name="messageContentIn" />
+        <dataInput id="_9_destinationRoutesInput" name="destinationRoutes" />
+        <dataInput id="_9_ServiceNameInput" name="ServiceName" />
+        <dataInput id="_9_ServiceOperationNameInput" name="ServiceOperationName" />
+        <inputSet>
+          <dataInputRefs>_9_messageContentInInput</dataInputRefs>
+          <dataInputRefs>_9_destinationRoutesInput</dataInputRefs>
+          <dataInputRefs>_9_ServiceNameInput</dataInputRefs>
+          <dataInputRefs>_9_ServiceOperationNameInput</dataInputRefs>
+        </inputSet>
+        <outputSet>
+        </outputSet>
+      </ioSpecification>
+      <dataInputAssociation>
+        <sourceRef>messageContentIn</sourceRef>
+        <targetRef>_9_messageContentInInput</targetRef>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <sourceRef>destinationRoutes</sourceRef>
+        <targetRef>_9_destinationRoutesInput</targetRef>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_9_ServiceNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">RetrieveSelectionService</from>
+          <to xsi:type="tFormalExpression">_9_ServiceNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_9_ServiceOperationNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">process</from>
+          <to xsi:type="tFormalExpression">_9_ServiceOperationNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+    </task>
+    <task id="_10" name="Aggregator" tns:taskName="SwitchYard Service" >
+      <extensionElements>
+        <tns:onEntry-script>
+          <script>processId = kcontext.getProcessInstance().getId();
+kcontext.setVariable("processId", processId);</script>
+        </tns:onEntry-script>
+        <tns:onExit-script scriptFormat="http://www.java.com/java">
+          <script>if(!messageContentOut.isEmpty()){
+	kcontext.getProcessInstance().signalEvent("node-enter", "FIRE");
+	System.out.println("ALL DONE");
+}else{
+	System.out.println("CHUNK PROCESSED");
+}</script>
+        </tns:onExit-script>
+      </extensionElements>
+      <ioSpecification>
+        <dataInput id="_10_messageContentInInput" name="messageContentIn" />
+        <dataInput id="_10_processIdInput" name="processId" />
+        <dataInput id="_10_destinationRoutesInput" name="destinationRoutes" />
+        <dataInput id="_10_outInput" name="out" />
+        <dataInput id="_10_ServiceNameInput" name="ServiceName" />
+        <inputSet>
+          <dataInputRefs>_10_messageContentInInput</dataInputRefs>
+          <dataInputRefs>_10_processIdInput</dataInputRefs>
+          <dataInputRefs>_10_destinationRoutesInput</dataInputRefs>
+          <dataInputRefs>_10_outInput</dataInputRefs>
+          <dataInputRefs>_10_ServiceNameInput</dataInputRefs>
+        </inputSet>
+        <outputSet>
+        </outputSet>
+      </ioSpecification>
+      <dataInputAssociation>
+        <sourceRef>messageContentOutTemp</sourceRef>
+        <targetRef>_10_messageContentInInput</targetRef>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <sourceRef>processId</sourceRef>
+        <targetRef>_10_processIdInput</targetRef>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <sourceRef>destinationRoutes</sourceRef>
+        <targetRef>_10_destinationRoutesInput</targetRef>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <sourceRef>messageContentOut</sourceRef>
+        <targetRef>_10_outInput</targetRef>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_10_ServiceNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">StoreAggregator</from>
+          <to xsi:type="tFormalExpression">_10_ServiceNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+    </task>
+    <exclusiveGateway id="_11" name="Merger" gatewayDirection="Converging" />
+    <task id="_13" name="Amazon S3 Retrieve Process" tns:taskName="SwitchYard Service" >
+      <ioSpecification>
+        <dataInput id="_13_messageContentInInput" name="messageContentIn" />
+        <dataInput id="_13_ServiceNameInput" name="ServiceName" />
+        <dataInput id="_13_ServiceOperationNameInput" name="ServiceOperationName" />
+        <dataOutput id="_13_messageContentOutOutput" name="messageContentOut" />
+        <inputSet>
+          <dataInputRefs>_13_messageContentInInput</dataInputRefs>
+          <dataInputRefs>_13_ServiceNameInput</dataInputRefs>
+          <dataInputRefs>_13_ServiceOperationNameInput</dataInputRefs>
+        </inputSet>
+        <outputSet>
+          <dataOutputRefs>_13_messageContentOutOutput</dataOutputRefs>
+        </outputSet>
+      </ioSpecification>
+      <dataInputAssociation>
+        <sourceRef>messageContentIn</sourceRef>
+        <targetRef>_13_messageContentInInput</targetRef>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_13_ServiceNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">S3RetrieveService</from>
+          <to xsi:type="tFormalExpression">_13_ServiceNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_13_ServiceOperationNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">process</from>
+          <to xsi:type="tFormalExpression">_13_ServiceOperationNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+      <dataOutputAssociation>
+        <sourceRef>_13_messageContentOutOutput</sourceRef>
+        <targetRef>messageContentOutTemp</targetRef>
+      </dataOutputAssociation>
+    </task>
+    <task id="_14" name="Dropbox Adapter [Retrieve]" tns:taskName="SwitchYard Service" >
+      <ioSpecification>
+        <dataInput id="_14_messageContentInInput" name="messageContentIn" />
+        <dataInput id="_14_ServiceNameInput" name="ServiceName" />
+        <dataInput id="_14_ServiceOperationNameInput" name="ServiceOperationName" />
+        <dataOutput id="_14_messageContentOutOutput" name="messageContentOut" />
+        <inputSet>
+          <dataInputRefs>_14_messageContentInInput</dataInputRefs>
+          <dataInputRefs>_14_ServiceNameInput</dataInputRefs>
+          <dataInputRefs>_14_ServiceOperationNameInput</dataInputRefs>
+        </inputSet>
+        <outputSet>
+          <dataOutputRefs>_14_messageContentOutOutput</dataOutputRefs>
+        </outputSet>
+      </ioSpecification>
+      <dataInputAssociation>
+        <sourceRef>messageContentIn</sourceRef>
+        <targetRef>_14_messageContentInInput</targetRef>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_14_ServiceNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">DropboxServiceAdapter</from>
+          <to xsi:type="tFormalExpression">_14_ServiceNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_14_ServiceOperationNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">retrieveSafe</from>
+          <to xsi:type="tFormalExpression">_14_ServiceOperationNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+      <dataOutputAssociation>
+        <sourceRef>_14_messageContentOutOutput</sourceRef>
+        <targetRef>messageContentOutTemp</targetRef>
+      </dataOutputAssociation>
+    </task>
+    <endEvent id="_15" name="End" >
+        <terminateEventDefinition/>
+    </endEvent>
+    <task id="_16" name="Type Enforcer [OperationStatus]" tns:taskName="SwitchYard Service" >
+      <ioSpecification>
+        <dataInput id="_16_messageContentInInput" name="messageContentIn" />
+        <dataInput id="_16_ServiceNameInput" name="ServiceName" />
+        <dataInput id="_16_ServiceOperationNameInput" name="ServiceOperationName" />
+        <dataOutput id="_16_messageContentOutOutput" name="messageContentOut" />
+        <inputSet>
+          <dataInputRefs>_16_messageContentInInput</dataInputRefs>
+          <dataInputRefs>_16_ServiceNameInput</dataInputRefs>
+          <dataInputRefs>_16_ServiceOperationNameInput</dataInputRefs>
+        </inputSet>
+        <outputSet>
+          <dataOutputRefs>_16_messageContentOutOutput</dataOutputRefs>
+        </outputSet>
+      </ioSpecification>
+      <dataInputAssociation>
+        <sourceRef>messageContentOutTemp</sourceRef>
+        <targetRef>_16_messageContentInInput</targetRef>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_16_ServiceNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">TypeEnforcer</from>
+          <to xsi:type="tFormalExpression">_16_ServiceNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_16_ServiceOperationNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">enforceOperationStatus</from>
+          <to xsi:type="tFormalExpression">_16_ServiceOperationNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+      <dataOutputAssociation>
+        <sourceRef>_16_messageContentOutOutput</sourceRef>
+        <targetRef>messageContentOutTemp</targetRef>
+      </dataOutputAssociation>
+    </task>
+    <intermediateCatchEvent id="_20" name="Finalize Signal" >
+      <signalEventDefinition signalRef="node-enter"/>
+    </intermediateCatchEvent>
+    <endEvent id="_25" name="End" >
+        <terminateEventDefinition/>
+    </endEvent>
+    <parallelGateway id="_27" name="Gateway" gatewayDirection="Converging" />
+
+    <!-- connections -->
+    <sequenceFlow id="_9-_3" sourceRef="_9" targetRef="_3" />
+    <sequenceFlow id="_3-_5" sourceRef="_3" targetRef="_5" name="has Photos route" >
+      <conditionExpression xsi:type="tFormalExpression" language="http://www.java.com/java" >return destinationRoutes.contains(Constants.Picasa.ROUTE_ID);
+</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="_3-_6" sourceRef="_3" targetRef="_6" name="has Docs route" >
+      <conditionExpression xsi:type="tFormalExpression" language="http://www.java.com/java" >return destinationRoutes.contains(Constants.GoogleDocs.ROUTE_ID);</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="_1-_9" sourceRef="_1" targetRef="_9" />
+    <sequenceFlow id="_16-_10" sourceRef="_16" targetRef="_10" />
+    <sequenceFlow id="_6-_11" sourceRef="_6" targetRef="_11" />
+    <sequenceFlow id="_5-_11" sourceRef="_5" targetRef="_11" />
+    <sequenceFlow id="_13-_11" sourceRef="_13" targetRef="_11" />
+    <sequenceFlow id="_14-_11" sourceRef="_14" targetRef="_11" />
+    <sequenceFlow id="_3-_13" sourceRef="_3" targetRef="_13" name="has Amazon S3 route" tns:priority="1" >
+      <conditionExpression xsi:type="tFormalExpression" language="http://www.java.com/java" >return destinationRoutes.contains(Constants.AmazonS3.ROUTE_ID);</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="_3-_14" sourceRef="_3" targetRef="_14" name="has Dropbox route" tns:priority="1" >
+      <conditionExpression xsi:type="tFormalExpression" language="http://www.java.com/java" >return destinationRoutes.contains(Constants.Dropbox.ROUTE_ID);</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="_3-_15" sourceRef="_3" targetRef="_15" name="no Route" tns:priority="1" >
+      <conditionExpression xsi:type="tFormalExpression" language="http://www.java.com/java" >return destinationRoutes.isEmpty();</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="_11-_16" sourceRef="_11" targetRef="_16" />
+    <sequenceFlow id="_27-_25" sourceRef="_27" targetRef="_25" />
+    <sequenceFlow id="_10-_27" sourceRef="_10" targetRef="_27" />
+    <sequenceFlow id="_20-_27" sourceRef="_20" targetRef="_27" />
+
+  </process>
+
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane bpmnElement="RetrieveFileProcess" >
+      <bpmndi:BPMNShape bpmnElement="_1" >
+        <dc:Bounds x="556" y="16" width="48" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_3" >
+        <dc:Bounds x="556" y="176" width="48" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_5" >
+        <dc:Bounds x="16" y="257" width="209" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_6" >
+        <dc:Bounds x="257" y="257" width="198" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_9" >
+        <dc:Bounds x="503" y="96" width="155" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_10" >
+        <dc:Bounds x="404" y="498" width="118" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_11" >
+        <dc:Bounds x="439" y="337" width="48" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_13" >
+        <dc:Bounds x="487" y="257" width="186" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_14" >
+        <dc:Bounds x="705" y="257" width="186" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_15" >
+        <dc:Bounds x="923" y="257" width="48" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_16" >
+        <dc:Bounds x="325" y="418" width="277" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_20" >
+        <dc:Bounds x="554" y="498" width="48" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_25" >
+        <dc:Bounds x="496" y="659" width="48" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_27" >
+        <dc:Bounds x="496" y="578" width="48" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="_9-_3" >
+        <di:waypoint x="580" y="120" />
+        <di:waypoint x="580" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_3-_5" >
+        <di:waypoint x="580" y="200" />
+        <di:waypoint x="120" y="281" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_3-_6" >
+        <di:waypoint x="580" y="200" />
+        <di:waypoint x="356" y="281" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_1-_9" >
+        <di:waypoint x="580" y="40" />
+        <di:waypoint x="580" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_16-_10" >
+        <di:waypoint x="463" y="442" />
+        <di:waypoint x="463" y="522" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_6-_11" >
+        <di:waypoint x="356" y="281" />
+        <di:waypoint x="463" y="361" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_5-_11" >
+        <di:waypoint x="120" y="281" />
+        <di:waypoint x="463" y="361" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_13-_11" >
+        <di:waypoint x="580" y="281" />
+        <di:waypoint x="463" y="361" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_14-_11" >
+        <di:waypoint x="798" y="281" />
+        <di:waypoint x="463" y="361" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_3-_13" >
+        <di:waypoint x="580" y="200" />
+        <di:waypoint x="580" y="281" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_3-_14" >
+        <di:waypoint x="580" y="200" />
+        <di:waypoint x="798" y="281" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_3-_15" >
+        <di:waypoint x="580" y="200" />
+        <di:waypoint x="947" y="281" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_11-_16" >
+        <di:waypoint x="463" y="361" />
+        <di:waypoint x="463" y="442" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_27-_25" >
+        <di:waypoint x="520" y="602" />
+        <di:waypoint x="520" y="683" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_10-_27" >
+        <di:waypoint x="463" y="522" />
+        <di:waypoint x="520" y="602" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_20-_27" >
+        <di:waypoint x="578" y="522" />
+        <di:waypoint x="520" y="602" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</definitions>

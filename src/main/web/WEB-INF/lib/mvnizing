@@ -1,0 +1,1 @@
+mvn install:install-file -Dfile=dropbox-java-sdk-1.3.jar -DgroupId=com.dropbox -DartifactId=dropbox-java-sdk -Dversion=1.3 -Dpackaging=jar -DgeneratePom=true

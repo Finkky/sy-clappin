@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration xmlns="urn:hornetq">
+	<connection-factory name="ConnectionFactory">
+		<connectors>
+			<connector-ref connector-name="invm-connector" />
+		</connectors>
+		<entries>
+			<entry name="ConnectionFactory"/>
+			<entry name="RemoteConnectionFactory" />
+		</entries>
+	</connection-factory>
+	<queue name="GreetingServiceQueue">
+		<entry name="GreetingServiceQueue" />
+	</queue>
+	<queue name="dropboxSync">
+		<entry name="dropboxSync" />
+	</queue>
+	<queue name="storeFile">
+		<entry name="storeFile" />
+	</queue>
+</configuration>

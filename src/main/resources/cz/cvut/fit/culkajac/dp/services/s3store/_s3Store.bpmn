@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<definitions id="Definition"
+             targetNamespace="http://www.jboss.org/drools"
+             typeLanguage="http://www.java.com/javaTypes"
+             expressionLanguage="http://www.mvel.org/2.0"
+             xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd"
+             xmlns:g="http://www.jboss.org/drools/flow/gpd"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             xmlns:tns="http://www.jboss.org/drools">
+
+  <itemDefinition id="_messageContentInItem" />
+  <itemDefinition id="_messageContentOutItem" />
+  <itemDefinition id="_destinationRouteItem" structureRef="java.util.Set" />
+
+  <process processType="Private" isExecutable="true" id="S3StoreFileProcess" name="S3StoreFileProcess" tns:packageName="cz.cvut.fit.culkajac.dp.services.s3store" >
+
+    <extensionElements>
+     <tns:import name="com.google.common.collect.Sets" />
+     <tns:import name="java.util.Set" />
+     <tns:global identifier="exchange" type="org.switchyard.Exchange" />
+    </extensionElements>
+    <!-- process variables -->
+    <property id="messageContentIn" itemSubjectRef="_messageContentInItem"/>
+    <property id="messageContentOut" itemSubjectRef="_messageContentOutItem"/>
+    <property id="destinationRoute" itemSubjectRef="_destinationRouteItem"/>
+
+    <!-- nodes -->
+    <startEvent id="_1" name="StartProcess" />
+    <endEvent id="_2" name="End" >
+        <terminateEventDefinition/>
+    </endEvent>
+    <task id="_6" name="Amazon S3 Service [Put Object]" tns:taskName="SwitchYard Service" >
+      <ioSpecification>
+        <dataInput id="_6_messageContentInInput" name="messageContentIn" />
+        <dataInput id="_6_ServiceNameInput" name="ServiceName" />
+        <dataInput id="_6_ServiceOperationNameInput" name="ServiceOperationName" />
+        <dataOutput id="_6_messageContentOutOutput" name="messageContentOut" />
+        <inputSet>
+          <dataInputRefs>_6_messageContentInInput</dataInputRefs>
+          <dataInputRefs>_6_ServiceNameInput</dataInputRefs>
+          <dataInputRefs>_6_ServiceOperationNameInput</dataInputRefs>
+        </inputSet>
+        <outputSet>
+          <dataOutputRefs>_6_messageContentOutOutput</dataOutputRefs>
+        </outputSet>
+      </ioSpecification>
+      <dataInputAssociation>
+        <sourceRef>messageContentOut</sourceRef>
+        <targetRef>_6_messageContentInInput</targetRef>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_6_ServiceNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">AmazonS3</from>
+          <to xsi:type="tFormalExpression">_6_ServiceNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_6_ServiceOperationNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">PutObjectInline</from>
+          <to xsi:type="tFormalExpression">_6_ServiceOperationNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+      <dataOutputAssociation>
+        <sourceRef>_6_messageContentOutOutput</sourceRef>
+        <targetRef>messageContentOut</targetRef>
+      </dataOutputAssociation>
+    </task>
+    <task id="_7" name="Amazon S3 Message Signer" tns:taskName="SwitchYard Service" >
+      <ioSpecification>
+        <dataInput id="_7_messageContentInInput" name="messageContentIn" />
+        <dataInput id="_7_ServiceNameInput" name="ServiceName" />
+        <dataInput id="_7_ServiceOperationNameInput" name="ServiceOperationName" />
+        <dataOutput id="_7_messageContentOutOutput" name="messageContentOut" />
+        <inputSet>
+          <dataInputRefs>_7_messageContentInInput</dataInputRefs>
+          <dataInputRefs>_7_ServiceNameInput</dataInputRefs>
+          <dataInputRefs>_7_ServiceOperationNameInput</dataInputRefs>
+        </inputSet>
+        <outputSet>
+          <dataOutputRefs>_7_messageContentOutOutput</dataOutputRefs>
+        </outputSet>
+      </ioSpecification>
+      <dataInputAssociation>
+        <sourceRef>messageContentIn</sourceRef>
+        <targetRef>_7_messageContentInInput</targetRef>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_7_ServiceNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">SecurityAdapter</from>
+          <to xsi:type="tFormalExpression">_7_ServiceNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+      <dataInputAssociation>
+        <targetRef>_7_ServiceOperationNameInput</targetRef>
+        <assignment>
+          <from xsi:type="tFormalExpression">signPut</from>
+          <to xsi:type="tFormalExpression">_7_ServiceOperationNameInput</to>
+        </assignment>
+      </dataInputAssociation>
+      <dataOutputAssociation>
+        <sourceRef>_7_messageContentOutOutput</sourceRef>
+        <targetRef>messageContentOut</targetRef>
+      </dataOutputAssociation>
+    </task>
+
+    <!-- connections -->
+    <sequenceFlow id="_6-_2" sourceRef="_6" targetRef="_2" />
+    <sequenceFlow id="_7-_6" sourceRef="_7" targetRef="_6" />
+    <sequenceFlow id="_1-_7" sourceRef="_1" targetRef="_7" />
+
+  </process>
+
+  <bpmndi:BPMNDiagram>
+    <bpmndi:BPMNPlane bpmnElement="S3StoreFileProcess" >
+      <bpmndi:BPMNShape bpmnElement="_1" >
+        <dc:Bounds x="100" y="16" width="48" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_2" >
+        <dc:Bounds x="100" y="256" width="48" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_6" >
+        <dc:Bounds x="41" y="176" width="166" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="_7" >
+        <dc:Bounds x="16" y="96" width="216" height="48" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="_6-_2" >
+        <di:waypoint x="124" y="200" />
+        <di:waypoint x="124" y="280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_7-_6" >
+        <di:waypoint x="124" y="120" />
+        <di:waypoint x="124" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_1-_7" >
+        <di:waypoint x="124" y="40" />
+        <di:waypoint x="124" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</definitions>

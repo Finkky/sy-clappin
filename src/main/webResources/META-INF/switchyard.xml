@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<swyd:switchyard name="camel-soap-proxy" xmlns="http://docs.oasis-open.org/ns/opencsa/sca/200912" xmlns:sca="http://docs.oasis-open.org/ns/opencsa/sca/200912"
+	xmlns:swyd="urn:switchyard-config:switchyard:1.0" xmlns:soap="urn:switchyard-component-soap:config:1.0" xmlns:camel="urn:switchyard-component-camel:config:1.0"
+	xmlns:spring="http://camel.apache.org/schema/spring" xmlns:trfm="urn:switchyard-config:transform:1.0" xmlns:hornetq="urn:switchyard-component-hornetq:config:1.0">
+	<sca:composite xmlns="http://docs.oasis-open.org/ns/opencsa/sca/200912" name="saasIntegration" targetNamespace="urn:switchyard:application:saasIntegration">
+<!-- 		<sca:reference name="AmazonS3" promote="SecurityAdapter/AmazonS3" multiplicity="0..1"> -->
+<!-- 			<sca:interface.wsdl interface="http://doc.s3.amazonaws.com/2006-03-01/AmazonS3.wsdl#wsdl.porttype(AmazonS3)"></sca:interface.wsdl> -->
+<!-- 			<soap:binding.soap> -->
+<!-- 				<soap:wsdl>http://doc.s3.amazonaws.com/2006-03-01/AmazonS3.wsdl</soap:wsdl> -->
+<!-- 			</soap:binding.soap> -->
+<!-- 		</sca:reference> -->
+		<sca:reference name="AmazonS3" promote="AmazonS3" multiplicity="0..n">
+			<sca:interface.wsdl interface="http://doc.s3.amazonaws.com/2006-03-01/AmazonS3.wsdl#wsdl.porttype(AmazonS3)"></sca:interface.wsdl>
+			<soap:binding.soap>
+				<soap:wsdl>http://doc.s3.amazonaws.com/2006-03-01/AmazonS3.wsdl</soap:wsdl>
+			</soap:binding.soap>
+		</sca:reference>
+
+		<sca:service name="DropboxSyncService" promote="DropboxSyncService/DropboxSyncService">
+			<camel:binding.camel configURI="jms://dropboxSync?connectionFactory=#RemoteConnectionFactory" />
+		</sca:service>
+
+		<sca:service name="DropboxRSService" promote="DropboxRSService/DropboxRSService">
+			<camel:binding.camel configURI="jms://storeFile?connectionFactory=#RemoteConnectionFactory" />
+		</sca:service>
+
+		<sca:reference name="DropboxRSServiceProxy" promote="DropboxSyncService/DropboxRSServiceProxy" multiplicity="1..1">
+			<camel:binding.camel configURI="jms://storeFile?connectionFactory=#RemoteConnectionFactory" />
+		</sca:reference>
+
+		<sca:component name="StoreFileService">
+			<sca:reference name="StoreSelectionService">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.store.StoreSelectionService" />
+			</sca:reference>
+			<sca:reference name="GoogleDocsServiceAdapter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.googledocs.GoogleDocsServiceAdapter" />
+			</sca:reference>
+			<sca:reference name="GooglePhotosServiceAdapter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.googlephotos.GooglePhotosServiceAdapter" />
+			</sca:reference>
+			<sca:reference name="DropboxServiceAdapter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.dropbox.DropboxServiceAdapter" />
+			</sca:reference>
+			<sca:reference name="S3StoreService">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.s3store.S3StoreService" />
+			</sca:reference>
+			<sca:reference name="TypeEnforcer">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.typeenforcer.TypeEnforcer" />
+			</sca:reference>
+			<sca:reference name="StoreAggregator">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.store.StoreAggregator" />
+			</sca:reference>
+		</sca:component>
+		<sca:component name="S3StoreService">
+			<sca:reference name="AmazonS3">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.amazons3.AmazonS3" />
+			</sca:reference>
+			<sca:reference name="SecurityAdapter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.amazons3.SecurityAdapter" />
+			</sca:reference>
+			<sca:reference name="S3StoreSelectionService">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.s3store.S3StoreSelectionService" />
+			</sca:reference>
+			<sca:reference name="AmazonS3ApiAdapter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.amazons3api.AmazonS3ApiAdapter" />
+			</sca:reference>
+		</sca:component>
+		<!-- RETRIEVE SERVICE -->
+		<sca:component name="RetrieveFileService">
+			<sca:reference name="RetrieveSelectionService">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.retrieve.RetrieveSelectionService" />
+			</sca:reference>
+			<sca:reference name="GoogleDocsServiceAdapter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.googledocs.GoogleDocsServiceAdapter" />
+			</sca:reference>
+			<sca:reference name="GooglePhotosServiceAdapter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.googlephotos.GooglePhotosServiceAdapter" />
+			</sca:reference>
+			<sca:reference name="DropboxServiceAdapter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.dropbox.DropboxServiceAdapter" />
+			</sca:reference>
+			<sca:reference name="S3RetrieveService">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.s3retrieve.S3RetrieveService" />
+			</sca:reference>
+			<sca:reference name="TypeEnforcer">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.typeenforcer.TypeEnforcer" />
+			</sca:reference>
+			<sca:reference name="StoreAggregator">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.store.StoreAggregator" />
+			</sca:reference>
+		</sca:component>
+		<sca:component name="S3RetrieveService">
+			<sca:reference name="AmazonS3Stapler">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.amazons3.AmazonS3Stapler" />
+			</sca:reference>
+			<sca:reference name="SecurityAdapter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.amazons3.SecurityAdapter" />
+			</sca:reference>
+			<sca:reference name="S3RetrieveSelectionService">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.s3retrieve.S3RetrieveSelectionService" />
+			</sca:reference>
+			<sca:reference name="AmazonS3ApiAdapter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.amazons3api.AmazonS3ApiAdapter" />
+			</sca:reference>
+		</sca:component>
+		<!-- DELETE SERVICE -->
+		<sca:component name="DeleteFileService">
+			<sca:reference name="DeleteSelectionService">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.delete.DeleteSelectionService" />
+			</sca:reference>
+			<sca:reference name="GoogleDocsServiceAdapter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.googledocs.GoogleDocsServiceAdapter" />
+			</sca:reference>
+			<sca:reference name="GooglePhotosServiceAdapter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.googlephotos.GooglePhotosServiceAdapter" />
+			</sca:reference>
+			<sca:reference name="DropboxServiceAdapter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.dropbox.DropboxServiceAdapter" />
+			</sca:reference>
+			<sca:reference name="AmazonS3">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.amazons3.AmazonS3" />
+			</sca:reference>
+			<sca:reference name="SecurityAdapter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.amazons3.SecurityAdapter" />
+			</sca:reference>
+			<sca:reference name="TypeEnforcer">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.typeenforcer.TypeEnforcer" />
+			</sca:reference>
+			<sca:reference name="StoreAggregator">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.store.StoreAggregator" />
+			</sca:reference>
+		</sca:component>
+		<!-- DROPBOX SYNC SERVICE -->
+		<sca:component name="DropboxSyncService">
+			<sca:reference name="ThrottlingSplitter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.dropboxsync.ThrottlingSplitter" />
+			</sca:reference>
+			<sca:reference name="DropboxServiceAdapter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.dropbox.DropboxServiceAdapter" />
+			</sca:reference>
+			<sca:reference name="DropboxRSServiceProxy">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.dropboxrs.DropboxRSServiceProxy" />
+			</sca:reference>
+		</sca:component>
+		<sca:component name="DropboxRSService">
+			<sca:reference name="DropboxServiceAdapter">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.dropbox.DropboxServiceAdapter" />
+			</sca:reference>
+			<sca:reference name="StoreFileService">
+				<sca:interface.java interface="cz.cvut.fit.culkajac.dp.services.store.StoreFileService" />
+			</sca:reference>
+		</sca:component>
+	</sca:composite>
+	<swyd:transforms>
+		<trfm:transform.jaxb from="java:cz.cvut.fit.culkajac.dp.services.amazons3.dto.GetObject" to="{http://s3.amazonaws.com/doc/2006-03-01/}GetObject" />
+		<trfm:transform.jaxb from="java:cz.cvut.fit.culkajac.dp.services.amazons3.dto.PutObjectInline" to="{http://s3.amazonaws.com/doc/2006-03-01/}PutObjectInline" />
+		<trfm:transform.jaxb from="java:cz.cvut.fit.culkajac.dp.services.amazons3.dto.DeleteObject" to="{http://s3.amazonaws.com/doc/2006-03-01/}DeleteObject" />
+		<trfm:transform.jaxb from="{http://s3.amazonaws.com/doc/2006-03-01/}PutObjectInlineResponse" to="java:cz.cvut.fit.culkajac.dp.services.amazons3.dto.PutObjectInlineResponse" />
+		<trfm:transform.jaxb from="{http://s3.amazonaws.com/doc/2006-03-01/}GetObjectResponse" to="java:cz.cvut.fit.culkajac.dp.services.amazons3.dto.GetObjectResponse" />
+		<trfm:transform.jaxb from="{http://s3.amazonaws.com/doc/2006-03-01/}DeleteObjectResponse" to="java:cz.cvut.fit.culkajac.dp.services.amazons3.dto.DeleteObjectResponse" />
+	</swyd:transforms>
+</swyd:switchyard>

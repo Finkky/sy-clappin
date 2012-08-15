@@ -1,0 +1,34 @@
+package cz.cvut.fit.culkajac.dp.services.s3store
+
+global org.switchyard.Exchange exchange;
+
+import cz.cvut.fit.culkajac.dp.dto.FileDTO;
+import cz.cvut.fit.culkajac.dp.Constants;
+
+import java.util.Set;
+import org.switchyard.Property;
+import org.switchyard.Scope;
+
+
+rule "Set to S3 SOAP"
+	
+    when
+        #conditions
+        #1 MB is threshold for S3 inline data queries
+        $msg : FileDTO(metadata.contentLength != null, metadata.contentLength <= 1024*1024)
+    then
+        #actions
+    	((Set)exchange.getContext().getProperty("destinationRoutes", Scope.IN).getValue()).add(Constants.AmazonS3.SOAP.ROUTE_ID);
+        
+end
+
+rule "Set to S3 API" 
+
+    when
+        #conditions
+        $msg : FileDTO(metadata.contentLength == null) || FileDTO(metadata.contentLength != null, metadata.contentLength > 1024*1024)
+    then
+    	#actions
+    	((Set)exchange.getContext().getProperty("destinationRoutes", Scope.IN).getValue()).add(Constants.AmazonS3.API.ROUTE_ID);
+    	
+end
